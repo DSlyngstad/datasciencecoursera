@@ -1,0 +1,18 @@
+---
+title: "Getting and Cleaning Data Peer Review Project README File"
+output: html_document
+---
+
+## R Markdown
+
+##Getting and Cleaning Data Peer Review Project
+
+This Github repository contains code relevant to the peer reviewed project for the Getting and Cleaning data course offered through Johns Hopkins University as part of their Data Science specialization.
+
+The project assesses skill in importing, processing, and tidying data across a number of datasets, such that the final product is a single tidy dataset.  Overview of the datasets used can be found at The UCI Machine Learning Repository (http://archive.ics.uci.edu/ml/datasets/Human+Activity+Recognition+Using+Smartphones).
+
+See run_analysis.R for the script that imports and creates the tidy data.
+
+See the following URL to download the various datasets: (https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip)
+
+The final tidy dataset is found in the text file "means_tibble_text.txt"
