@@ -1,0 +1,138 @@
+---
+title: "Reproducible Research Peer Project 1"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Examining Steps Taken Over Time
+
+This markdown document contains code and output for Johns Hopkins Reproducible Research Coursera course for the week 2 peer reviewed assignment.  
+
+
+##Loading and preprocessing the data (Question 1)
+
+```{r}
+#setting the working directory
+rm(list=ls())
+getwd()
+
+setwd("C:/Users/Daniel Slyngstad/Documents/R Working Directory/RMOOC2/MOOC5")
+
+#loading requisite packages
+library(tidyverse)
+library(psych)
+library(lubridate)
+
+#reading in the data
+df <- read.csv('activity.csv', header = TRUE) 
+
+#double checking the data format
+head(df)
+dim(df)
+```
+
+
+##What is mean total number of steps taken per day? (Question 2)
+
+```{r}
+#creating a dataset aggregated by date
+bydate_df_sum_noNA <- aggregate(df[, 1], list(df$date), sum, na.rm=TRUE)
+names(bydate_df_sum_noNA) <- c('day', 'total_steps')
+```
+
+###Plotting mean total steps per day
+```{r}
+#plotting average total steps taken each day as a histogram
+hist(bydate_df_sum_noNA$total_steps, xlab = 'Day Number', main = 'Total Steps per Day', col = 10, breaks = 25)
+```
+
+###Checking the mean and median of total steps per day
+```{r}
+#mean and median total steps 
+mean(bydate_df_sum_noNA$total_steps, na.rm=TRUE)
+median(bydate_df_sum_noNA$total_steps, na.rm=TRUE)
+```
+
+
+##What is the average daily activity pattern? (Question 3)
+```{r}
+#creating an aggregated dataframe by interval
+byinterval_df_noNA <- aggregate(df[, 1], list(df$interval), mean, na.rm=TRUE)
+names(byinterval_df_noNA) <- c("interval", 'steps')
+
+#double checking the aggregated data
+head(byinterval_df_noNA)
+dim(byinterval_df_noNA)
+```
+
+
+###Plotting as a time series
+```{r}
+plot(byinterval_df_noNA$steps, type = 'l', main = 'Steps Taken by Five Minute Interval', 
+     xlab = '5 Minute Interval Number', ylab = 'Average Steps')
+```
+
+###Finding the max interval
+```{r}
+byinterval_df_noNA$interval[byinterval_df_noNA$steps == max(byinterval_df_noNA$steps)]
+```
+
+
+##Imputing missing values (Question 4)
+```{r}
+#calculating the number of missing i.e. FALSEs
+table(complete.cases(df))
+
+#verifying that this approach returns a boolean
+is.na(df$steps[1])
+
+#imputing means from interval level data into raw data
+mean_imp_df <- df 
+for (i in 1:nrow(mean_imp_df)) {
+  if (is.na(mean_imp_df$steps[i])) {
+    mean_imp_df$steps[i] <- byinterval_df_noNA[which(mean_imp_df$interval[i] == byinterval_df_noNA$interval), ]$steps
+  }
+}
+```
+
+###Plotting the results
+```{r}
+#plotting total steps per day with imputed missing values
+bydate_df_sum_imputed <- aggregate(mean_imp_df[, 1], list(df$date), sum)
+names(bydate_df_sum_imputed) <- c('day', 'total_steps')
+hist(bydate_df_sum_imputed$total_steps, xlab = 'Day Number', main = 'Total Steps per Day (on Imputed Data)', 
+     col = 10, breaks = 50)
+```
+
+##Are there differences in activity patterns between weekdays and weekends? (Question 5)
+
+
+```{r}
+#creating requisite date/day category variables
+mean_imp_df$date <- ymd(mean_imp_df$date)
+
+class(mean_imp_df$date)
+
+mean_imp_df$dayofweek <- weekdays(mean_imp_df$date)
+head(mean_imp_df)
+
+mean_imp_df$day_category <- ifelse(mean_imp_df$dayofweek %in% c("Saturday", "Sunday"),"Weekend", "Weekday")
+
+#double checking
+head(mean_imp_df)
+
+#aggregating to the interval level
+mean_imp_byinterval <- aggregate(steps ~ interval + day_category, mean_imp_df, mean)
+
+head(mean_imp_byinterval)
+```
+
+###Generating the panel line plot 
+```{r}
+ggplot(mean_imp_byinterval, aes(x=interval,y=steps)) + 
+  geom_line(color="red",size=1) + facet_wrap(~day_category, nrow=2, ncol=1) + labs(x="Interval",y="Number of Steps")
+```
+
